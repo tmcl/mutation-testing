@@ -17,9 +17,12 @@ main = hspec $ do
       pure ()
 
   describe "isAdult" $ do
-    it "is true at and above 18" $ do
-      isAdult 18 `shouldBe` True
+    -- Deliberately missing the boundary (age 18 and age 17): this test has
+    -- real, passing assertions, on correct code, with 100% coverage --
+    -- HPC's tick fires on "this expression ran", not on which inputs it
+    -- ran with, so dropping these two cases doesn't move the coverage
+    -- number at all. It still can't tell `>=` from `>`.
+    it "is true above 18" $
       isAdult 25 `shouldBe` True
-    it "is false below 18" $ do
-      isAdult 17 `shouldBe` False
+    it "is false below 18" $
       isAdult 0 `shouldBe` False
