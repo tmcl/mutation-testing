@@ -1,0 +1,19 @@
+cabal-version:      2.4
+name:                mutation-coverage-demo
+version:             0.1.0.0
+build-type:          Simple
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Example
+  build-depends:       base
+  default-language:    Haskell2010
+
+test-suite spec
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:       test
+  main-is:              Spec.hs
+  build-depends:        base
+                      , mutation-coverage-demo
+                      , hspec
+  default-language:     Haskell2010
