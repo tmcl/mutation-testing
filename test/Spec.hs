@@ -2,10 +2,10 @@ module Main (main) where
 
 import Control.Exception (evaluate)
 import Example
-import Test.Hspec
+import Test.Syd hiding (Spec)
 
 main :: IO ()
-main = hspec $ do
+main = sydTest $ do
   describe "add" $
     -- This test runs `add`, so it counts towards coverage -- but it never
     -- looks at the result. Any change to `add`'s body passes this test.
