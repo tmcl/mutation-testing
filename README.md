@@ -69,10 +69,40 @@ Neither test suite was actually checking the thing that would have caught
 its respective bug. That's the entire claim; there's no tool involved yet,
 just two functions and two tests that each pass for the wrong reason.
 
-## Where this is going
+## Stage 2 (this branch): the real tool
 
-This project is the first stage of a larger example: later stages will wire
-up [sydtest](https://github.com/NorfairKing/sydtest)'s mutation-testing GHC
-plugin (the same tool used on `signs-alt`) so both of these survivors --
-`add`'s unchecked result and `isAdult`'s missing boundary -- show up
-automatically in a mutation report instead of needing a manual demonstration.
+`1baseline` is the stage-1 state above (plain hspec, manual demonstration).
+This branch (`2mutations`) converts the test suite to
+[sydtest](https://github.com/NorfairKing/sydtest) and wires up its
+mutation-testing GHC plugin via `checks.mutation` in `flake.nix` -- the
+same tool, same setup pattern, as `signs-alt`.
+
+```
+nix build '.#checks.x86_64-linux.mutation'
+```
+
+Last real run: **3 survived, 6 killed, 0 uncovered** -- the exact two
+planted gaps, found automatically:
+
+- `Cmp`: `isAdult`'s `>=` mutated to `>` -- survives
+- `Arith`: `add`'s `+` mutated to `-` -- survives
+- `IntLit`: `isAdult`'s `18` mutated to `1` -- also survives (a second way
+  of hitting the same missing-boundary gap)
+
+Getting a clean run took three real fixes, each worth knowing if this
+demo is re-run or extended:
+
+1. The package must be injected into `haskellPackages` via an overlay --
+   `mutationCheck` looks packages up as `super.${pkg}` internally, so a
+   plain local `callCabal2nix` binding isn't visible to it.
+2. The test-suite needs `-rtsopts` in `ghc-options`. Without it, the
+   driver's `--child-mem-limit` RTS flag is silently rejected rather than
+   applied -- inconsistently enough to make a should-be-identical control
+   mutation look different, which sydtest correctly flags as "mutation
+   testing may be unsound."
+3. `-with-rtsopts=-N` additionally needs `-threaded` -- GHC refuses `-N`
+   (parallel GC) without it.
+
+All three are exactly the kind of thing `signs-alt`'s own `.cabal` file
+already has in its `common test-opts`/`common warnings` stanzas; this
+project just hadn't copied them over yet.
