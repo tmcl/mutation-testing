@@ -106,3 +106,21 @@ demo is re-run or extended:
 All three are exactly the kind of thing `signs-alt`'s own `.cabal` file
 already has in its `common test-opts`/`common warnings` stanzas; this
 project just hadn't copied them over yet.
+
+## Stage 3 (`3genocide`): kill them all
+
+Branch name is the field's own terminology taken literally, not a
+euphemism I'm introducing -- see the talk's terminology slide. This
+branch adds the tests the mutation report asked for, to see the other
+end of the mutation-score scale.
+
+```
+nix build '.#checks.x86_64-linux.mutation'
+```
+
+**Survived: 0, Killed: 11, Uncovered: 0.** `add 2 3 \`shouldBe\` 5` kills
+`Arith`, `isAdult 18`/`isAdult 17` close the boundary (kills `Cmp` and
+`IntLit` both). One real wrinkle hit getting here: the first attempt used
+`add 2 2 \`shouldBe\` 4`, which does *not* kill the `+` to `*` mutant --
+2 + 2 and 2 * 2 are both 4. Equal inputs can't distinguish addition from
+multiplication; `add 2 3` (5 vs. 6) can.

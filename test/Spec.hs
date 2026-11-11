@@ -1,28 +1,26 @@
 module Main (main) where
 
-import Control.Exception (evaluate)
 import Example
 import Test.Syd hiding (Spec)
 
 main :: IO ()
 main = sydTest $ do
   describe "add" $
-    -- This test runs `add`, so it counts towards coverage -- but it never
-    -- looks at the result. Any change to `add`'s body passes this test.
-    -- `evaluate` forces the result (otherwise, being unused, it would never
-    -- even run -- laziness means an uninspected result isn't "coverage" at
-    -- all, it's just dead code).
-    it "runs without crashing" $ do
-      _result <- evaluate (add 2 2)
-      pure ()
+    -- 2 + 2 = 4 and 2 * 2 = 4: equal inputs can't tell + from *, so the
+    -- first attempt at this test (`add 2 2`) left that one mutant
+    -- surviving. Unequal inputs can: 2 + 3 /= 2 - 3 /= 2 * 3.
+    it "adds" $
+      add 2 3 `shouldBe` 5
 
   describe "isAdult" $ do
-    -- Deliberately missing the boundary (age 18 and age 17): this test has
-    -- real, passing assertions, on correct code, with 100% coverage --
-    -- HPC's tick fires on "this expression ran", not on which inputs it
-    -- ran with, so dropping these two cases doesn't move the coverage
-    -- number at all. It still can't tell `>=` from `>`.
+    -- The boundary is back. Kills Cmp (`>=` to `>`: 18 > 18 is False, not
+    -- True) and IntLit (`18` to `1`: 17 >= 1 is True, not False) -- both
+    -- gaps this whole demo was built around, actually closed.
     it "is true above 18" $
       isAdult 25 `shouldBe` True
+    it "is true at exactly 18" $
+      isAdult 18 `shouldBe` True
     it "is false below 18" $
       isAdult 0 `shouldBe` False
+    it "is false at exactly 17" $
+      isAdult 17 `shouldBe` False
