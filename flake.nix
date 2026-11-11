@@ -34,12 +34,23 @@
           });
         };
 
+        # mutationCheck looks packages up as attributes of haskellPackages
+        # itself (it does `super.${pkg}` internally), so the package needs
+        # to be injected via an overlay -- a local `let`-bound
+        # callCabal2nix isn't visible to it. Mirrors signs-alt's
+        # `alphabets`/`makeHaskellOverlay` pattern.
+        addDemoOverlay = final: prev: {
+          haskellPackages = prev.haskellPackages.extend (hsSelf: _hsSuper: {
+            mutation-coverage-demo = hsSelf.callCabal2nix "mutation-coverage-demo" ./. { };
+          });
+        };
+
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ sydtest.overlays.${system} sydtestDepsOverlay ];
+          overlays = [ sydtest.overlays.${system} sydtestDepsOverlay addDemoOverlay ];
         };
         hs = pkgs.haskellPackages;
-        demo = hs.callCabal2nix "mutation-coverage-demo" ./. { };
+        demo = hs.mutation-coverage-demo;
       in {
         packages.default = demo;
 

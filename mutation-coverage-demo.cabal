@@ -13,6 +13,7 @@ test-suite spec
   type:                exitcode-stdio-1.0
   hs-source-dirs:       test
   main-is:              Spec.hs
+  ghc-options:          -threaded -rtsopts -with-rtsopts=-N
   build-depends:        base
                       , mutation-coverage-demo
                       , sydtest
